@@ -1,3 +1,4 @@
+export const ENV_FLAG_NAME = 'has-yfm-notes';
 export const DEFAULT_LANG = 'en';
 
 type Lang = 'ru' | 'en' | 'ar' | 'cs' | 'fr' | 'es' | 'he' | 'bg' | 'et' | 'el' | 'pt' | 'zh' | 'zh-tw' | 'kk' | 'tr' | 'uz';
