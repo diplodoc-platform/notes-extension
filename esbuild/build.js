@@ -1,20 +1,26 @@
 #!/usr/bin/env node
 
-const esbuild = require('esbuild');
-const {
-    compilerOptions: {target},
-} = require('../tsconfig.json');
+import {build} from 'esbuild';
 
+import tsConfig from '../tsconfig.json' assert {type: 'json'};
+
+const outDir = 'build/';
+
+/** @type {import('esbuild').BuildOptions}*/
 const common = {
     bundle: true,
     sourcemap: true,
-    target: target,
+    target: tsConfig.compilerOptions.target,
     tsconfig: './tsconfig.json',
 };
 
-esbuild.build({
+/** @type {import('esbuild').BuildOptions}*/
+const plugin = {
     ...common,
-    entryPoints: ['src/index.ts'],
-    outfile: 'index.js',
-    minify: true,
-});
+    entryPoints: ['src/plugin/index.ts'],
+    outfile: outDir + '/plugin/index.js',
+    platform: 'node',
+    packages: 'external',
+};
+
+build(plugin);
