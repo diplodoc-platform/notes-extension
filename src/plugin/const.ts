@@ -101,3 +101,20 @@ export const TITLES: Record<Lang, Record<string, string>> = {
         warning: 'Bu muhim',
     },
 };
+
+export const TokenType = {
+    Note: 'yfm-note',
+    NoteOpen: 'yfm_note_open',
+    NoteClose: 'yfm_note_close',
+    NoteTitleOpen: 'yfm_note_title_open',
+    NoteTitleClose: 'yfm_note_title_close',
+    NoteContentOpen: 'yfm_note_content_open',
+    NoteContentClose: 'yfm_note_content_close'
+} as const;
+
+export const ClassNames = {
+    Note: 'yfm-note',
+    Accent: 'yfm-accent',
+    Title: 'yfm-note-title',
+    Content: 'yfm-note-content'
+} as const;

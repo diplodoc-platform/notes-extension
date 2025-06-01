@@ -1,5 +1,5 @@
 import type MarkdownIt from 'markdown-it';
-import { DEFAULT_LANG } from './const';
+import { ClassNames, DEFAULT_LANG, TokenType } from './const';
 import type { Core , StateCore } from 'markdown-it';
 import { findCloseTokenIdx, getTitle, matchOpenToken, matchWrongNotes } from './helpers';
 
@@ -37,8 +37,8 @@ export const notesPlugin: MarkdownIt.PluginSimple = (
                 }
 
                 const type = match[1].toLowerCase();
-                const newOpenToken = new state.Token('yfm_note_open', 'div', 1);
-                newOpenToken.attrSet('class', `yfm-note yfm-accent-${type}`);
+                const newOpenToken = new state.Token(TokenType.NoteOpen, 'div', 1);
+                newOpenToken.attrSet('class', `${ClassNames.Note} ${ClassNames.Accent}-${type}`);
                 newOpenToken.attrSet('note-type', type);
                 newOpenToken.map = tokens[i].map;
                 const closeTokenMap = tokens[closeTokenIdx].map;
@@ -47,24 +47,24 @@ export const notesPlugin: MarkdownIt.PluginSimple = (
                     newOpenToken.map[1] = closeTokenMap[1];
                 }
 
-                const newCloseToken = new state.Token('yfm_note_close', 'div', -1);
+                const newCloseToken = new state.Token(TokenType.NoteClose, 'div', -1);
                 newCloseToken.map = tokens[closeTokenIdx].map;
 
                 // Add extra paragraph
-                const titleOpen = new state.Token('yfm_note_title_open', 'p', 1);
-                titleOpen.attrSet('class', 'yfm-note-title');
+                const titleOpen = new state.Token(TokenType.NoteTitleOpen, 'p', 1);
+                titleOpen.attrSet('class', ClassNames.Title);
                 const autotitle = notesAutotitle ? getTitle(type, lang) : '';
                 const titleContent = match[2] === undefined ? autotitle : match[2];
                 const titleInline = state.md.parseInline(titleContent, state.env)[0];
                 titleInline.map = null;
-                const titleClose = new state.Token('yfm_note_title_close', 'p', -1);
+                const titleClose = new state.Token(TokenType.NoteClose, 'p', -1);
 
                 titleOpen.block = true;
                 titleClose.block = true;
 
-                const contentOpen = new state.Token('yfm_note_content_open', 'div', 1);
+                const contentOpen = new state.Token(TokenType.NoteContentOpen, 'div', 1);
                 contentOpen.attrSet('class', 'yfm-note-content');
-                const contentClose = new state.Token('yfm_note_content_close', 'div', -1);
+                const contentClose = new state.Token(TokenType.NoteContentClose, 'div', -1);
 
                 if (newOpenToken.map) {
                     contentOpen.map = [newOpenToken.map[0] + 2, newOpenToken.map[1] - 2];
