@@ -2,7 +2,7 @@
 
 [![NPM version](https://img.shields.io/npm/v/@diplodoc/notes-extension.svg?style=flat)](https://www.npmjs.org/package/@diplodoc/notes-extension)
 
-This is an extension of the Diplodoc platform, which allows adding collapsible sections in the documentation.
+This is an extension of the Diplodoc platform, which allows adding colorful notes in documentation
 
 The extension contains some parts:
 
