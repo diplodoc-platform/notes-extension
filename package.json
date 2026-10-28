@@ -1,6 +1,6 @@
 {
   "name": "@diplodoc/notes-extension",
-  "version": "0.0.0",
+  "version": "0.1.0-transform5.0",
   "description": "Notes extension for Diplodoc platform",
   "main": "build/cjs/index.js",
   "types": "build/cjs/plugin/index.d.ts",
@@ -53,7 +53,7 @@
   "bugs": {
     "url": "https://github.com/diplodoc-platform/diplodoc/issues"
   },
-  "private": true,
+  "private": false,
   "author": "",
   "license": "MIT",
   "files": [

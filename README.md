@@ -1,6 +1,6 @@
 # Diplodoc notes extension
 
-A synchronous MarkdownIt plugin for the existing `{% note info %}` / `{% endnote %}` syntax. The package remains a private migration candidate; no release is implied by this README.
+A synchronous MarkdownIt plugin for the existing `{% note info %}` / `{% endnote %}` syntax. This is a Transform 5 prerelease candidate; publication is separate from source review.
 
 ## Node use
 
@@ -73,4 +73,4 @@ npm run test:package
 npm run lint
 ```
 
-The installed package gate checks native13/14/15, strict CJS/ESM declarations, all export targets, real copy/collect/resources, and actual browser/style behavior. Tests do not update visual snapshots. The package stays private0.0.0 until a separate reviewed release decision.
+The installed package gate checks native13/14/15, strict CJS/ESM declarations, all export targets, real copy/collect/resources, and actual browser/style behavior. Tests do not update visual snapshots. Stable adoption requires a separate release decision and actual consumer migration checks.
