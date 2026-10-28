@@ -7,3 +7,5 @@ exclude:
     reason: 'Use read-only lock validation; automated force-push needs separate review.'
   - path: .github/workflows/release.yml
     reason: 'Require explicit dispatch confirmation and gate stable releases to master.'
+  - path: .github/workflows/dependency-review.yml
+    reason: 'Private repository lacks Code Security for now; strict review resumes when public.'
