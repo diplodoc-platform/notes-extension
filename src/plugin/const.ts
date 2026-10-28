@@ -1,7 +1,23 @@
 export const ENV_FLAG_NAME = 'has-yfm-notes';
-export const DEFAULT_LANG = 'en';
+export const DEFAULT_LANG = 'ru';
 
-type Lang = 'ru' | 'en' | 'ar' | 'cs' | 'fr' | 'es' | 'he' | 'bg' | 'et' | 'el' | 'pt' | 'zh' | 'zh-tw' | 'kk' | 'tr' | 'uz';
+export type Lang =
+    | 'ru'
+    | 'en'
+    | 'ar'
+    | 'cs'
+    | 'fr'
+    | 'es'
+    | 'he'
+    | 'bg'
+    | 'et'
+    | 'el'
+    | 'pt'
+    | 'zh'
+    | 'zh-tw'
+    | 'kk'
+    | 'tr'
+    | 'uz';
 
 export const TITLES: Record<Lang, Record<string, string>> = {
     ru: {
@@ -109,12 +125,12 @@ export const TokenType = {
     NoteTitleOpen: 'yfm_note_title_open',
     NoteTitleClose: 'yfm_note_title_close',
     NoteContentOpen: 'yfm_note_content_open',
-    NoteContentClose: 'yfm_note_content_close'
+    NoteContentClose: 'yfm_note_content_close',
 } as const;
 
 export const ClassNames = {
     Note: 'yfm-note',
     Accent: 'yfm-accent',
     Title: 'yfm-note-title',
-    Content: 'yfm-note-content'
+    Content: 'yfm-note-content',
 } as const;

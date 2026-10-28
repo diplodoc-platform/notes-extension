@@ -1,95 +1,74 @@
-import type MarkdownIt from 'markdown-it';
+import type MarkdownItConstructor from 'markdown-it' with {'resolution-mode': 'import'};
+import type {NoteParser, NoteToken, NotesOptions} from './types.js';
+import type {Runtime, RuntimeOption} from './resources.js';
 
-import {notesPlugin} from './plugin';
-import {type Runtime, copyRuntime, dynrequire, hidden} from './utils';
-import {ENV_FLAG_NAME} from './const';
+import {createRequire} from 'node:module';
+import {fileURLToPath, pathToFileURL} from 'node:url';
+import {copyFileSync, mkdirSync} from 'node:fs';
+import {dirname, join, resolve} from 'node:path';
 
-export type TransformOptions = {
-    runtime?:
-        | string
-        | {
-              script: string;
-              style: string;
-          };
-    bundle?: boolean;
-};
+import {createNotesPlugin} from './plugin.js';
+import {addResources, normalizeRuntime, semanticOptions} from './resources.js';
 
-type NormalizedPluginOptions = Omit<TransformOptions, 'runtime'> & {
-    runtime: Runtime;
-};
+declare const __MODULE_PATH__: string;
 
-const registerTransform = (
-    md: MarkdownIt,
-    {
-        runtime,
-        bundle,
-        output,
-    }: Pick<NormalizedPluginOptions, 'bundle' | 'runtime'> & {
-        output: string;
-    },
-) => {
-    md.use(notesPlugin);
-    md.core.ruler.push('yfm_notes_after', ({env}) => {
-        hidden(env, 'bundled', new Set<string>());
+export type TransformOptions = NotesOptions & {runtime?: RuntimeOption; bundle?: boolean};
+export type PluginOptions = NotesOptions & {output?: string};
+export type CollectOptions = NotesOptions & {destRoot?: string};
+export interface NotesTransformPlugin {
+    <Token extends NoteToken>(md: NoteParser<Token>, settings?: PluginOptions): void;
+    collect(input: string, options?: CollectOptions): void;
+}
 
-        if (env?.[ENV_FLAG_NAME]) {
-            env.meta = env.meta || {};
-            env.meta.script = env.meta.script || [];
-            env.meta.script.push(runtime.script);
-            env.meta.style = env.meta.style || [];
-            env.meta.style.push(runtime.style);
-
-            if (bundle) {
-                copyRuntime({runtime, output}, env.bundled);
-            }
-        }
-    });
-};
-
-type InputOptions = {
-    destRoot: string;
-};
-
-export function transform(options: Partial<TransformOptions> = {}) {
-    const {bundle = true} = options;
-
-    if (bundle && typeof options.runtime === 'string') {
-        throw new TypeError('Option `runtime` should be record when `bundle` is enabled.');
+function copyRuntime(runtime: Runtime, output: string, copied: Set<string>): void {
+    const moduleUrl = __MODULE_PATH__.startsWith('file:')
+        ? new URL(__MODULE_PATH__)
+        : pathToFileURL(__MODULE_PATH__);
+    const runtimeDirectory = fileURLToPath(new URL('../runtime/', moduleUrl));
+    for (const [name, target] of [
+        ['index.css', runtime.style],
+        ['index.cjs', runtime.script],
+    ] as const) {
+        if (!target) continue;
+        const destination = resolve(join(output, target));
+        if (copied.has(destination)) continue;
+        mkdirSync(dirname(destination), {recursive: true});
+        copyFileSync(join(runtimeDirectory, name), destination);
+        copied.add(destination);
     }
+}
 
-    const runtime: Runtime =
-        typeof options.runtime === 'string'
-            ? {script: options.runtime, style: options.runtime}
-            : options.runtime || {
-                  script: '_assets/notes-extension.js',
-                  style: '_assets/notes-extension.css',
-              };
-
-    const plugin: MarkdownIt.PluginWithOptions<{output?: string}> = function (
-        md: MarkdownIt,
-        {output = '.'} = {},
-    ) {
-        registerTransform(md, {
-            runtime,
-            bundle,
-            output,
-        });
-    };
-
-    Object.assign(plugin, {
-        collect(input: string, {destRoot = '.'}: InputOptions) {
-            const MdIt = dynrequire('markdown-it');
-            const md = new MdIt().use((md: MarkdownIt) => {
-                registerTransform(md, {
-                    runtime,
-                    bundle,
-                    output: destRoot,
-                });
-            });
-
-            md.parse(input, {});
+export function transform(options: TransformOptions = {}): NotesTransformPlugin {
+    const {bundle = true} = options;
+    const runtime = normalizeRuntime(options.runtime, bundle);
+    const copiedByDocument = new WeakMap<Record<string, unknown>, Set<string>>();
+    function plugin<Token extends NoteToken>(
+        md: NoteParser<Token>,
+        settings: PluginOptions = {},
+    ): void {
+        const semantic = semanticOptions(options, settings);
+        createNotesPlugin(
+            undefined,
+            runtime
+                ? (env) => {
+                      addResources(env, runtime);
+                      if (bundle) {
+                          let copied = copiedByDocument.get(env);
+                          if (!copied) {
+                              copied = new Set<string>();
+                              copiedByDocument.set(env, copied);
+                          }
+                          copyRuntime(runtime, settings.output ?? '.', copied);
+                      }
+                  }
+                : undefined,
+        )(md, semantic);
+    }
+    return Object.assign(plugin, {
+        collect(input: string, {destRoot = '.', ...settings}: CollectOptions = {}): void {
+            const MarkdownIt: typeof MarkdownItConstructor =
+                createRequire(__MODULE_PATH__)('markdown-it');
+            new MarkdownIt().use(plugin, {...settings, output: destRoot}).parse(input, {});
         },
     });
-
-    return plugin;
 }
