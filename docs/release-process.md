@@ -19,3 +19,15 @@ owner decisions; this configuration does not change any of them.
 The accepted manual prerelease is independent of these workflows. Verify a
 future stable release and its required GitHub/npm permissions before relying on
 the automation. Deprecation also requires explicit confirmation.
+
+## Private repository dependency review
+
+The owner confirmed that GitHub Code Security is unavailable for now and plans
+to make the repository public after its infrastructure is prepared. Until then,
+private PRs skip the strict GitHub dependency and license review and show a
+separate notice: no such review was performed. Other quality checks and the
+existing npm audit continue, but they do not replace the skipped review. After
+public visibility is enabled by the owner, rerun the strict Dependency Review
+on the PR before relying on the result. The workflow leaves its vulnerability
+and license thresholds unchanged and enables the strict job automatically for
+public repositories. No visibility or security settings are changed here.
