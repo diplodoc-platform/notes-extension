@@ -1,4 +1,5 @@
 {
+  "extends": "@diplodoc/infra/tsconfig.json",
   "compilerOptions": {
     "target": "ES2022",
     "module": "NodeNext",
