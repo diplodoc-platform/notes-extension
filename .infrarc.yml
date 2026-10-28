@@ -1,0 +1,9 @@
+exclude:
+  - path: .github/workflows/tests.yml
+    reason: 'Run installed-package and Chromium checks on every supported OS.'
+  - path: .github/workflows/auto-approve.yml
+    reason: 'Bot approval activation requires separate review.'
+  - path: .github/workflows/package-lock.yml
+    reason: 'Use read-only lock validation; automated force-push needs separate review.'
+  - path: .github/workflows/release.yml
+    reason: 'Require explicit dispatch confirmation and gate stable releases to master.'
