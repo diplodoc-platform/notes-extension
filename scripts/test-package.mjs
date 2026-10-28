@@ -13,8 +13,11 @@ const directory = mkdtempSync(join(tmpdir(), 'notes-package-'));
 const root = process.cwd();
 const run = (args, cwd) =>
     execFileSync(args[0], args.slice(1), {cwd, stdio: 'pipe', env: process.env});
+const npmPath = process.env.npm_execpath;
+assert.ok(npmPath, 'Run this gate through npm run test:package.');
+const runNpm = (args, cwd) => run([process.execPath, npmPath, ...args], cwd);
 const packed = JSON.parse(
-    run(['npm', 'pack', '--json', '--pack-destination', directory], root).toString(),
+    runNpm(['pack', '--json', '--pack-destination', directory], root).toString(),
 )[0];
 const tar = join(directory, packed.filename);
 const results = [];
@@ -36,7 +39,7 @@ for (const [version, types] of [
         join(fixture, 'package.json'),
         JSON.stringify({private: true, dependencies: deps}),
     );
-    run(['npm', 'install', '--ignore-scripts', '--no-audit', '--no-fund'], fixture);
+    runNpm(['install', '--no-audit', '--no-fund'], fixture);
     const installed = join(fixture, 'node_modules/@diplodoc/notes-extension');
     const manifest = JSON.parse(readFileSync(join(installed, 'package.json')));
     const targets = (value) =>
