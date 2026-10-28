@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync} from 'node:fs';
-import {dirname, join} from 'node:path';
+import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {build} from 'esbuild';
 import {chromium} from 'playwright';
@@ -52,10 +52,9 @@ for (const [version, types] of [
             readFileSync(join(root, file.path)),
             file.path,
         );
-    const scss = join(installed, manifest.exports['./scss/notes']);
     const css = sass.compileString(
-        "@use 'notes'; .yfm .yfm-note { @include notes.notes-body; } @include notes.notes-print;",
-        {loadPaths: [dirname(scss)]},
+        "@use 'pkg:@diplodoc/notes-extension/scss/notes'; .yfm .yfm-note { @include notes.notes-body; } @include notes.notes-print;",
+        {importers: [new sass.NodePackageImporter(fixture)]},
     ).css;
     assert.equal(
         css,

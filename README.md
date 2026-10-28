@@ -59,6 +59,20 @@ No real note means no resource emission/copy. Metadata is deduplicated in first-
 
 `/runtime/styles` and `/runtime/styles.css` resolve to the same scoped CSS including print behavior. `/runtime` remains an importable empty compatibility entry. `/scss/notes` provides the canonical `notes-body` and `notes-print` mixins so host bundles can retain their original cascade positions without duplicating CSS. Do not import both compiled CSS and the same mixins into one output.
 
+Use Sass's [Node package importer](https://sass-lang.com/documentation/js-api/classes/nodepackageimporter/) for the public mixin entry:
+
+```scss
+@use 'pkg:@diplodoc/notes-extension/scss/notes';
+
+.yfm .yfm-note {
+  @include notes.notes-body;
+}
+
+@include notes.notes-print;
+```
+
+Enable that importer with `importers: [new sass.NodePackageImporter()]` in the Sass JavaScript API, or `--pkg-importer=node` in its CLI. With `esbuild-sass-plugin`, the supported Node resolution spelling is `@use '~@diplodoc/notes-extension/scss/notes';`. A bare Sass import without a package resolver does not resolve package exports.
+
 The old private prototype advertised `/react` without any source/build target. That placeholder is removed; this package does not implement a React component. Existing supported Transform notes paths must remain bridges under its separate deprecation policy.
 
 ## Validation and development
