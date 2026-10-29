@@ -28,7 +28,17 @@ The root exports named `transform` and `TokenType`, and a default namespace cont
 
 `lang`, `notesAutotitle`, `path` and `log` may be supplied as factory defaults or through the real `md.use(plugin, settings)` call. Defined callback settings override factory defaults. Language defaults to Russian, matching the accepted Transform notes behavior. Supported languages are ru, en, ar, cs, fr, es, he, bg, et, el, pt, zh, zh-tw, kk, tr and uz; unknown/empty values fall back to Russian.
 
-Automatic titles remain enabled by default. `notesAutotitle: false` disables only the automatic title; explicit titles, inline title markup and explicit empty `""` titles retain their meaning. Supported kinds are info, tip, alert and warning. No colon syntax is added.
+Automatic titles remain enabled by default. `notesAutotitle: false` disables only the automatic title; explicit titles, inline title markup and explicit empty `""` titles retain their meaning. Supported kinds are info, tip, alert and warning.
+
+Directive syntax is opt-in at factory time: `transform({directiveSyntax: 'enabled'})` accepts both forms, while `'only'` accepts directive notes alone. The default `'disabled'` preserves the legacy-only standalone behavior. The pure factory accepts the same setting as its third argument, for example `createNotesPlugin(undefined, undefined, {directiveSyntax: 'enabled'})`; changing `md.use` settings does not change this mode. Enabled modes require a host with the Directive parser capabilities as well as the Notes core capabilities.
+
+```markdown
+:::note [Optional *title*] {type=info}
+Body
+:::
+```
+
+`type` is required and must be `info`, `tip`, `warning` or `alert`. An omitted title uses the localized automatic title when enabled; `[]` suppresses it. Other attributes and destinations are unsupported. An optional factory `onDiagnostic({line, reason})` reports recognized invalid parameters; invalid blocks fall back to ordinary Markdown, which may still parse an independently valid nested directive. Syntax the upstream parser does not recognize may not reach this callback.
 
 A supplied logger must implement both `warn` and `error`. Incorrect syntax is a warning; an unclosed note is an error. Messages and path precedence match the accepted implementation. Omitting the logger is explicitly quiet; it does not create a global logger.
 
