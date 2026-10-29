@@ -56,6 +56,12 @@ Render HTML inside a `.yfm` container. The browser entry does not import Node mo
 
 `@diplodoc/notes-extension/plugin` exposes the pure `createNotesPlugin(formatPath?, onNote?)` factory, `TokenType`, the canonical `TITLES` dictionary, `DEFAULT_LANG`, and finite public types including `Lang`. The dictionary exports let retained Transform constants paths delegate to this single source. It emits no assets. Transform's built-in bridge can bind its existing diagnostic formatter and reuse its own bundled styles. No private MarkdownIt State imports or Transform dependency are required.
 
+## Recognizing legacy note boundaries
+
+`recognizeNoteBoundary(tokens, index)` is exported from `@diplodoc/notes-extension/plugin` for tools that inspect the original MarkdownIt block tokens **before** the Notes core rule transforms them. It classifies the paragraph at `index` as a legacy `open`, `close`, or `unsupported` boundary, or returns `undefined`. An open result includes the note type and an authored `title`: `{present: false}` means no title was supplied, while `{present: true, raw: ''}` is an explicit empty title.
+
+The result contains a copied, readonly zero-based, half-open `map` of normalized source lines (or `null`) and the inline token's `raw` content, which may span multiple lines. It does not modify tokens, pair boundaries, validate a whole document, or calculate UTF-16 offsets into the original source. Callers must map normalized positions back to the original input and handle missing or ambiguous ranges conservatively.
+
 ## Resources and styles
 
 - Default standalone resource: `_assets/notes-extension.css`. Notes have no active client JavaScript behavior; no script is emitted by default.

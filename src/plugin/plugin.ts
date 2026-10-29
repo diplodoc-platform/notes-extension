@@ -1,5 +1,4 @@
 import type {
-    MatchTokenFunction,
     NoteParser,
     NoteState,
     NoteToken,
@@ -13,40 +12,14 @@ import type {NoteMarker} from './directive.js';
 import {createNestedCloseTokenIdxFactory} from './close.js';
 import {DEFAULT_LANG, TITLES} from './const.js';
 import {installNoteDirective} from './directive.js';
+import {matchCloseToken, matchOpenToken, matchWrongNotes} from './recognize.js';
 
 const quietLogger = {warn: (_message: string) => {}, error: (_message: string) => {}};
-
-const ALERT_RE = /^{% note (alert|info|tip|warning)\s*(?:"(.*?)")? %}$/;
-const WRONG_NOTES = /^{% note (.*)%}/;
-
-const matchCloseToken: MatchTokenFunction = (tokens, i) => {
-    return (
-        tokens[i].type === 'paragraph_open' &&
-        tokens[i + 1].type === 'inline' &&
-        tokens[i + 1].content.trim() === '{% endnote %}'
-    );
-};
 
 const titleDictionaries = new Map(Object.entries(TITLES));
 
 function getTitle(type: string, lang: string) {
     return (titleDictionaries.get(lang) ?? TITLES.ru)[type];
-}
-
-function matchOpenToken(tokens: NoteToken[], i: number) {
-    return (
-        tokens[i].type === 'paragraph_open' &&
-        tokens[i + 1].type === 'inline' &&
-        tokens[i + 1].content.match(ALERT_RE)
-    );
-}
-
-function matchWrongNotes(tokens: NoteToken[], i: number) {
-    return (
-        tokens[i].type === 'paragraph_open' &&
-        tokens[i + 1].type === 'inline' &&
-        tokens[i + 1].content.match(WRONG_NOTES)
-    );
 }
 
 type NoteEmission = {

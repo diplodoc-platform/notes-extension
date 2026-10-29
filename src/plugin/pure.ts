@@ -12,3 +12,6 @@ export type {
     NotesDirectiveDiagnostic,
     NotesFactoryOptions,
 } from './types.js';
+
+export {recognizeNoteBoundary} from './recognize.js';
+export type {NoteBoundary} from './recognize.js';

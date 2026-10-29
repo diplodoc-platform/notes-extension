@@ -123,7 +123,7 @@ for (const [version, types] of [
         fixture,
     );
     const body = `import notes, {transform, TokenType} from '@diplodoc/notes-extension';
-import {createNotesPlugin, TITLES, DEFAULT_LANG, type Lang} from '@diplodoc/notes-extension/plugin';
+import {createNotesPlugin, recognizeNoteBoundary, TITLES, DEFAULT_LANG, type Lang, type NoteBoundary} from '@diplodoc/notes-extension/plugin';
 import {transform as browserTransform} from '@diplodoc/notes-extension/browser';
 import '@diplodoc/notes-extension/runtime';
 import {mkdirSync,readFileSync,existsSync} from 'node:fs';
@@ -133,6 +133,17 @@ const text='{% note info %}\\n\\nBody\\n\\n{% endnote %}';
 assert.equal(notes.transform,transform);
 assert.equal(TokenType.NoteTitleClose,'yfm_note_title_close');
 const language:Lang=DEFAULT_LANG;assert.equal(language,'ru');assert.equal(Object.keys(TITLES).length,16);assert.equal(TITLES[language].info,'Примечание');
+const observed: NoteBoundary | undefined = recognizeNoteBoundary(new MarkdownIt().parse('{% note info "" %}', {}), 0);
+assert.equal(observed?.kind, 'open');
+if (observed?.kind === 'open') {
+  const noteType: 'info'|'tip'|'warning'|'alert' = observed.type; assert.equal(noteType, 'info');
+  assert.deepEqual(observed.title, {present:true, raw:''});
+  // @ts-expect-error Observations are readonly snapshots.
+  observed.raw = 'changed';
+} else if (observed) {
+  // @ts-expect-error Closing and unsupported boundaries have no authored type.
+  observed.type;
+}
 const plain = new MarkdownIt().use(createNotesPlugin());
 assert.ok(plain.render(text).includes('Примечание'));
 const errors:string[]=[];const warnings:string[]=[];
@@ -229,6 +240,28 @@ for (const order of ['note-first', 'footnote-first']) for (const attrs of [false
 `,
     );
     run(['node', 'footnote.cjs'], fixture);
+    const pureEntry = join(fixture, 'pure-graph.mjs');
+    writeFileSync(
+        pureEntry,
+        "import {recognizeNoteBoundary} from '@diplodoc/notes-extension/plugin'; globalThis.recognize = recognizeNoteBoundary;",
+    );
+    const pureBundle = await build({
+        entryPoints: [pureEntry],
+        bundle: true,
+        platform: 'browser',
+        format: 'esm',
+        write: false,
+        metafile: true,
+        target: 'es2022',
+    });
+    assert.ok(
+        Object.values(pureBundle.metafile.outputs).every((output) => output.imports.length === 0),
+    );
+    assert.ok(
+        !Object.keys(pureBundle.metafile.inputs).some(
+            (input) => input.includes('@diplodoc/transform') || input.includes('node:'),
+        ),
+    );
     const browserEntry = join(fixture, 'browser.mjs');
     writeFileSync(
         browserEntry,
@@ -287,6 +320,7 @@ for (const order of ['note-first', 'footnote-first']) for (const attrs of [false
     results.push({
         version,
         strictCjsEsm: true,
+        pureGraph: true,
         copyCollectResources: true,
         actualBrowser: true,
         exportTargets: true,
