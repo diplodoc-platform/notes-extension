@@ -91,5 +91,8 @@
   "engines": {
     "node": ">=24",
     "npm": ">=11.5.1"
+  },
+  "dependencies": {
+    "@diplodoc/directive": "0.5.0-transform5.2"
   }
 }

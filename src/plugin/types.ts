@@ -1,3 +1,10 @@
+import type {
+    BlockContentState,
+    DirectiveBlockState,
+    DirectiveInlineState,
+    DirectiveParserHost,
+} from '@diplodoc/directive';
+
 export interface NoteToken {
     type: string;
     content: string;
@@ -38,6 +45,21 @@ export type NotesPlugin = <Token extends NoteToken>(
     md: NoteParser<Token>,
     options?: NotesOptions,
 ) => void;
+
+export type NotesDirectivePlugin = <
+    Token extends NoteToken,
+    Block extends DirectiveBlockState & BlockContentState<Block>,
+    Inline extends DirectiveInlineState,
+>(
+    md: NoteParser<Token> & DirectiveParserHost<Block, Inline>,
+    options?: NotesOptions,
+) => void;
+
+export type NotesDirectiveDiagnostic = {line: number; reason: string};
+export type NotesFactoryOptions = {
+    directiveSyntax?: 'disabled' | 'enabled' | 'only';
+    onDiagnostic?: (diagnostic: NotesDirectiveDiagnostic) => void;
+};
 export type MatchTokenFunction = (
     tokens: NoteToken[],
     index: number,

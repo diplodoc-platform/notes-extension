@@ -8,4 +8,7 @@ export type {
     NotesLogger,
     NotesOptions,
     NotesPlugin,
+    NotesDirectivePlugin,
+    NotesDirectiveDiagnostic,
+    NotesFactoryOptions,
 } from './types.js';
