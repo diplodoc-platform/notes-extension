@@ -1,6 +1,6 @@
 {
   "name": "@diplodoc/notes-extension",
-  "version": "0.1.0-transform5.0",
+  "version": "0.1.0-transform5.1",
   "description": "Notes extension for Diplodoc platform",
   "main": "build/cjs/index.js",
   "types": "build/cjs/plugin/index.d.ts",
