@@ -2,8 +2,16 @@
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync} from 'node:fs';
-import {join} from 'node:path';
+import {
+    existsSync,
+    mkdirSync,
+    mkdtempSync,
+    readFileSync,
+    realpathSync,
+    writeFileSync,
+} from 'node:fs';
+import {createRequire} from 'node:module';
+import {join, sep} from 'node:path';
 import {tmpdir} from 'node:os';
 import {build} from 'esbuild';
 import {chromium} from 'playwright';
@@ -23,7 +31,7 @@ const tar = join(directory, packed.filename);
 const results = [];
 for (const [version, types] of [
     ['13.0.2', '13.0.9'],
-    ['14.1.0', '14.1.2'],
+    ['14.1.0', '14.1.0'],
     ['15.0.3', null],
 ]) {
     const fixture = join(directory, version);
@@ -33,13 +41,58 @@ for (const [version, types] of [
         'markdown-it': version,
         typescript: '6.0.3',
         '@types/node': '22.19.11',
+        'markdown-it-footnote': '4.0.0',
+        'markdown-it-attrs': '4.2.0',
     };
     if (types) deps['@types/markdown-it'] = types;
+    if (version === '14.1.0') deps.mdurl = '2.0.0';
+    if (version === '13.0.2') deps['markdown-it-transform15'] = 'npm:markdown-it@15.0.3';
     writeFileSync(
         join(fixture, 'package.json'),
         JSON.stringify({private: true, dependencies: deps}),
     );
     runNpm(['install', '--no-audit', '--no-fund'], fixture);
+    runNpm(['ci', '--no-audit', '--no-fund'], fixture);
+    const lock = JSON.parse(readFileSync(join(fixture, 'package-lock.json')));
+    const directive = lock.packages['node_modules/@diplodoc/directive'];
+    assert.equal(directive.version, '0.5.0-transform5.2');
+    assert.match(directive.resolved, /^https:\/\/registry\.npmjs\.org\//);
+    assert.equal(
+        directive.integrity,
+        'sha512-QcQ8muoELVH1dPOo4RMTFC0ca/u7HnCQ2s6dAqi8MvX3MSHT4aGryb3fCf3uAUTHTpzjPxNwxLroTwGLpLLOzw==',
+    );
+    const localRequire = createRequire(join(fixture, 'package.json'));
+    const modules = realpathSync(join(fixture, 'node_modules')) + sep;
+    for (const name of [
+        'markdown-it',
+        '@diplodoc/directive',
+        '@diplodoc/notes-extension',
+        'typescript',
+    ]) {
+        assert.ok(
+            realpathSync(localRequire.resolve(name)).startsWith(modules),
+            `${name} escaped fixture`,
+        );
+    }
+    const directiveRequire = createRequire(
+        localRequire.resolve('@diplodoc/directive/package.json'),
+    );
+    assert.equal(
+        realpathSync(directiveRequire.resolve('markdown-it')),
+        realpathSync(localRequire.resolve('markdown-it')),
+    );
+    assert.equal(localRequire('markdown-it/package.json').version, version);
+    if (types) assert.equal(localRequire('@types/markdown-it/package.json').version, types);
+    else
+        assert.throws(() => directiveRequire.resolve('@types/markdown-it/package.json'), {
+            code: 'MODULE_NOT_FOUND',
+        });
+    if (version === '13.0.2') {
+        assert.equal(localRequire('markdown-it-transform15/package.json').version, '15.0.3');
+        assert.ok(
+            realpathSync(localRequire.resolve('markdown-it-transform15')).startsWith(modules),
+        );
+    }
     const installed = join(fixture, 'node_modules/@diplodoc/notes-extension');
     const manifest = JSON.parse(readFileSync(join(installed, 'package.json')));
     const targets = (value) =>
@@ -99,6 +152,18 @@ const references:Record<string,unknown>={};const noCopy=join(process.cwd(),'refe
 const explicitScripts=join(process.cwd(),'explicit script');new MarkdownIt().use(transform({runtime:{style:'custom.css',script:'custom.js'}}),{output:explicitScripts}).render(text,{});assert.equal(readFileSync(join(explicitScripts,'custom.js'),'utf8'),'"use strict";\\n');
 const collectedErrors:string[]=[];plugin.collect('{% note info %}',{path:'collected.md',log:{warn:()=>{},error:(message:string)=>collectedErrors.push(message)}});assert.deepEqual(collectedErrors,['Note must be closed in collected.md']);
 const browserEnv:Record<string,unknown>={};new MarkdownIt().use(browserTransform({lang:'en'})).render(text,browserEnv);assert.deepEqual(browserEnv,{meta:{style:['_assets/notes-extension.css']}});
+const colon=':::note [*Title*] {type=info}\\nBody\\n:::';
+const colonPlugin=transform({directiveSyntax:'enabled',lang:'en',bundle:false,runtime:false});
+assert.match(new MarkdownIt().use(colonPlugin).render(colon), /<em>Title<\\/em>/);
+const pairedLegacy='{% note info "*Title*" %}\\n\\nBody\\n\\n{% endnote %}';
+const paired=new MarkdownIt().use(colonPlugin);assert.equal(paired.render(colon),paired.render(pairedLegacy));
+assert.match(new MarkdownIt().use(browserTransform({directiveSyntax:'only',lang:'en',runtime:false})).render(colon), /<em>Title<\\/em>/);
+const only=new MarkdownIt().use(createNotesPlugin(undefined,undefined,{directiveSyntax:'only'}),{lang:'en'});
+assert.doesNotMatch(only.render(text),/yfm-note/); assert.match(only.render(colon),/yfm-note/);
+const dynamicMode: 'disabled'|'enabled'|'only' = Math.random() < 0 ? 'disabled' : Math.random() < 0 ? 'enabled' : 'only';
+new MarkdownIt().use(transform({directiveSyntax:dynamicMode, runtime:false}));
+const colonEnv:Record<string,unknown>={};new MarkdownIt().use(transform({directiveSyntax:'enabled',bundle:false})).render(colon,colonEnv);assert.deepEqual(colonEnv,{meta:{style:['_assets/notes-extension.css']}});
+const colonCollector=transform({directiveSyntax:'enabled'});const colonDestination=join(process.cwd(),'colon collect');colonCollector.collect(colon,{destRoot:colonDestination});assert.ok(existsSync(join(colonDestination,'_assets/notes-extension.css')));
 assert.throws(()=>transform({runtime:'asset',bundle:true}),TypeError);
 assert.throws(() => {
 // @ts-expect-error Browser entry must not accept filesystem copying.
@@ -112,7 +177,11 @@ transform({log:{warn:(_message:string)=>{}}});
             extension === 'cts'
                 ? `import type MarkdownItConstructor from 'markdown-it' with {'resolution-mode':'import'};\nimport {createRequire} from 'node:module';\nconst MarkdownIt:typeof MarkdownItConstructor=createRequire(__filename)('markdown-it');\n`
                 : `import MarkdownIt from 'markdown-it';\n`;
-        writeFileSync(join(fixture, `test.${extension}`), header + body);
+        const mixed =
+            version === '13.0.2'
+                ? `\nimport MarkdownIt15 from 'markdown-it-transform15';\nnew MarkdownIt15().use(colonPlugin).render(colon);\n`
+                : '';
+        writeFileSync(join(fixture, `test.${extension}`), header + body + mixed);
     }
     writeFileSync(
         join(fixture, 'tsconfig.json'),
@@ -126,16 +195,44 @@ transform({log:{warn:(_message:string)=>{}}});
                 types: ['node'],
                 outDir: 'compiled',
             },
-            include: ['test.cts', 'test.mts'],
+            include: [
+                'test.cts',
+                'test.mts',
+                'node_modules/@diplodoc/notes-extension/build/**/*.d.ts',
+            ],
         }),
     );
     run(['node', 'node_modules/typescript/bin/tsc', '-p', 'tsconfig.json'], fixture);
     run(['node', 'compiled/test.cjs'], fixture);
     run(['node', 'compiled/test.mjs'], fixture);
+    writeFileSync(
+        join(fixture, 'footnote.cjs'),
+        `
+const assert = require('node:assert/strict');
+const MarkdownIt = require('markdown-it');
+const footnote = require('markdown-it-footnote');
+const attributes = require('markdown-it-attrs');
+const {createNotesPlugin} = require('@diplodoc/notes-extension/plugin');
+for (const order of ['note-first', 'footnote-first']) for (const attrs of [false,true]) {
+    let count = 0;
+    const md = new MarkdownIt();
+    if (attrs) md.use(attributes);
+    const note = createNotesPlugin(undefined, () => count++, {directiveSyntax: 'enabled'});
+    if (order === 'note-first') { md.use(note); md.use(footnote); }
+    else { md.use(footnote); md.use(note); }
+    const html = md.render('[^n]\\n\\n[^n]:\\n    :::note {type=info}\\n    Body\\n    :::');
+    assert.match(html, /<section class="footnotes"/);
+    assert.match(html, /<div class="yfm-note yfm-accent-info"/);
+    assert.doesNotMatch(html, /yfm_note_directive/);
+    assert.equal(count, 1);
+}
+`,
+    );
+    run(['node', 'footnote.cjs'], fixture);
     const browserEntry = join(fixture, 'browser.mjs');
     writeFileSync(
         browserEntry,
-        `${version === '15.0.3' ? "import MarkdownIt from 'markdown-it';" : 'const MarkdownIt = globalThis.markdownit;'}import {transform} from '@diplodoc/notes-extension/browser';const env={};document.body.innerHTML=new MarkdownIt().use(transform({lang:'fr',runtime:false})).render('{% note info %}\\n\\nBody\\n\\n{% endnote %}',env);if(document.querySelector('.yfm-note-title')?.textContent!=='Remarque'||Object.keys(env).length)throw Error('notes browser contract');document.body.dataset.notes='passed';`,
+        `${version === '15.0.3' ? "import MarkdownIt from 'markdown-it';" : 'const MarkdownIt = globalThis.markdownit;'}import {transform} from '@diplodoc/notes-extension/browser';const env={};document.body.innerHTML=new MarkdownIt().use(transform({lang:'fr',runtime:false,directiveSyntax:'enabled'})).render(':::note {type=info}\\nBody\\n:::',env);if(document.querySelector('.yfm-note-title')?.textContent!=='Remarque'||Object.keys(env).length)throw Error('notes browser contract');document.body.dataset.notes='passed';`,
     );
     const bundle = await build({
         entryPoints: [browserEntry],
