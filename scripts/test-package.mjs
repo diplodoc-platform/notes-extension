@@ -166,6 +166,12 @@ const browserEnv:Record<string,unknown>={};new MarkdownIt().use(browserTransform
 const colon=':::note [*Title*] {type=info}\\nBody\\n:::';
 const colonPlugin=transform({directiveSyntax:'enabled',lang:'en',bundle:false,runtime:false});
 assert.match(new MarkdownIt().use(colonPlugin).render(colon), /<em>Title<\\/em>/);
+const listNote='- :::note {type=info}\\n\\n  One\\n\\n  Two\\n\\n  :::\\n- Sibling';
+const listHtml=new MarkdownIt().use(colonPlugin).render(listNote);
+assert.ok(listHtml.includes('<p>One</p>'));assert.ok(listHtml.includes('<p>Two</p>'));assert.ok(listHtml.includes('<li>Sibling</li>'));
+const tightNote=':::note {type=info}\\n- First\\n- Second\\n:::';
+const tightHtml=new MarkdownIt().use(colonPlugin).render(tightNote);
+assert.ok(tightHtml.includes('<li>First</li>'));assert.ok(tightHtml.includes('<li>Second</li>'));
 const pairedLegacy='{% note info "*Title*" %}\\n\\nBody\\n\\n{% endnote %}';
 const paired=new MarkdownIt().use(colonPlugin);assert.equal(paired.render(colon),paired.render(pairedLegacy));
 assert.match(new MarkdownIt().use(browserTransform({directiveSyntax:'only',lang:'en',runtime:false})).render(colon), /<em>Title<\\/em>/);

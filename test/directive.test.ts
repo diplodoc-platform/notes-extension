@@ -43,7 +43,14 @@ describe('note directive parity', () => {
                     content,
                     attrs,
                 }));
-            expect(semantic(newTokens)).toEqual(semantic(oldTokens));
+            const oldSemantic = semantic(oldTokens);
+            const bodyStart =
+                oldSemantic.findIndex((token) => token.type === 'yfm_note_content_open') + 1;
+            const bodyEnd = oldSemantic.findIndex(
+                (token) => token.type === 'yfm_note_content_close',
+            );
+            for (const token of oldSemantic.slice(bodyStart, bodyEnd)) token.level += 2;
+            expect(semantic(newTokens)).toEqual(oldSemantic);
             expect(newTokens[0].map).toEqual([0, 3]);
             expect(newTokens.find((token) => token.type === 'yfm_note_content_open')?.map).toEqual([
                 1, 2,
@@ -202,3 +209,55 @@ it.each(['yfm_note_directive_open', 'yfm_note_directive_close'])(
         expect(count).toBe(0);
     },
 );
+
+it('keeps note paragraphs visible inside a tight list item and restores siblings', () => {
+    const md = new MarkdownIt().use(
+        createNotesPlugin(undefined, undefined, {directiveSyntax: 'enabled'}),
+    );
+    const tokens = md.parse(
+        '- :::note {type=info}\n\n  One\n\n  Two\n\n  :::\n- Sibling\n\nAFTER',
+        {},
+    );
+    const html = md.renderer.render(tokens, md.options, {});
+    expect(html).toContain('<p>One</p>');
+    expect(html).toContain('<p>Two</p>');
+    expect(html).toContain('<li>Sibling</li>');
+    expect(html).toContain('<p>AFTER</p>');
+    const body = tokens.filter((token) => token.type === 'paragraph_open' && token.map?.[0] === 2);
+    expect(body).toHaveLength(1);
+    expect(body[0]).toMatchObject({level: 4, hidden: false, map: [2, 3]});
+});
+
+it.each([
+    ['plain', '', ''],
+    ['list', '- ', '  '],
+    ['nested list', '- Parent\n  - ', '    '],
+    ['quote', '> ', '> '],
+])('preserves a tight list inside a %s note', (_name, prefix, indent) => {
+    const md = new MarkdownIt().use(
+        createNotesPlugin(undefined, undefined, {directiveSyntax: 'enabled'}),
+    );
+    const source =
+        prefix + [':::note {type=info}', '', '- First', '- Second', '', ':::'].join('\n' + indent);
+    const html = md.render(source);
+    expect(html).toContain('<li>First</li>');
+    expect(html).toContain('<li>Second</li>');
+});
+
+it('restores the host level when note body tokenization throws', () => {
+    const md = new MarkdownIt().use(
+        createNotesPlugin(undefined, undefined, {directiveSyntax: 'enabled'}),
+    );
+    const tokenize = md.block.tokenize;
+    let failedState: Parameters<typeof tokenize>[0] | undefined;
+    md.block.tokenize = (state, start, end) => {
+        if (state.parentType === 'note-directive') {
+            failedState = state;
+            expect(state.level).toBe(4);
+            throw new Error('body failure');
+        }
+        return tokenize.call(md.block, state, start, end);
+    };
+    expect(() => md.parse('- :::note {type=info}\n  Body\n  :::', {})).toThrow('body failure');
+    expect(failedState?.level).toBe(2);
+});
