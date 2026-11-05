@@ -72,7 +72,17 @@ export function installNoteDirective<
             if (typeof type !== 'string') throw new Error('Invalid validated note type');
             const open = state.push('yfm_note_directive_open', '', 0);
             open.map = [params.startLine, params.endLine];
-            tokenizeBlockContent(state, params.content, 'note-directive');
+
+            const level = state.level;
+            // The note and its content wrapper are emitted after block parsing.
+            state.level += 2;
+
+            try {
+                tokenizeBlockContent(state, params.content, 'note-directive');
+            } finally {
+                state.level = level;
+            }
+
             const close = state.push('yfm_note_directive_close', '', 0);
             close.map = [params.endLine - 1, params.endLine];
             markers.set(open, {
