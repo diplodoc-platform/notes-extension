@@ -1,6 +1,6 @@
 {
   "name": "@diplodoc/notes-extension",
-  "version": "0.1.0-transform5.1",
+  "version": "1.0.0-beta.1",
   "description": "Notes extension for Diplodoc platform",
   "main": "build/cjs/index.js",
   "types": "build/cjs/plugin/index.d.ts",
@@ -45,16 +45,19 @@
     "./scss/notes": "./build/scss/_notes.scss",
     "./package.json": "./package.json"
   },
-  "homepage": "https://diplodoc.com/",
+  "homepage": "https://github.com/diplodoc-platform/notes-extension#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/diplodoc-platform/notes-extension.git"
   },
   "bugs": {
-    "url": "https://github.com/diplodoc-platform/diplodoc/issues"
+    "url": "https://github.com/diplodoc-platform/notes-extension/issues"
   },
   "private": false,
-  "author": "",
+  "publishConfig": {
+    "access": "public",
+    "tag": "transform5"
+  },
   "license": "MIT",
   "files": [
     "build"
@@ -93,6 +96,6 @@
     "npm": ">=11.5.1"
   },
   "dependencies": {
-    "@diplodoc/directive": "0.5.0-transform5.2"
+    "@diplodoc/directive": "1.0.0-beta.1"
   }
 }

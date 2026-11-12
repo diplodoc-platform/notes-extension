@@ -55,11 +55,11 @@ for (const [version, types] of [
     runNpm(['ci', '--no-audit', '--no-fund'], fixture);
     const lock = JSON.parse(readFileSync(join(fixture, 'package-lock.json')));
     const directive = lock.packages['node_modules/@diplodoc/directive'];
-    assert.equal(directive.version, '0.5.0-transform5.2');
+    assert.equal(directive.version, '1.0.0-beta.1');
     assert.match(directive.resolved, /^https:\/\/registry\.npmjs\.org\//);
     assert.equal(
         directive.integrity,
-        'sha512-QcQ8muoELVH1dPOo4RMTFC0ca/u7HnCQ2s6dAqi8MvX3MSHT4aGryb3fCf3uAUTHTpzjPxNwxLroTwGLpLLOzw==',
+        'sha512-q7yoyqkn80tKocj58sQMWE2T2iQFCXEa4kuud/YMriYScsRyazenCfzA3Ic+67qolugmtrCzxM9I/mz3r4TkQQ==',
     );
     const localRequire = createRequire(join(fixture, 'package.json'));
     const modules = realpathSync(join(fixture, 'node_modules')) + sep;
