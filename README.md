@@ -1,6 +1,16 @@
-# Diplodoc notes extension
+[![NPM version](https://img.shields.io/npm/v/@diplodoc/notes-extension.svg?style=flat)](https://www.npmjs.org/package/@diplodoc/notes-extension)
+
+# @diplodoc/notes-extension
 
 A synchronous MarkdownIt plugin for the existing `{% note info %}` / `{% endnote %}` syntax. This is a Transform 5 prerelease candidate; publication is separate from source review.
+
+## Installation
+
+```sh
+npm install @diplodoc/notes-extension@transform5 markdown-it
+```
+
+The `transform5` tag selects the Transform 5 beta. This package supports MarkdownIt 13, 14 and 15.
 
 ## Node use
 
@@ -104,3 +114,9 @@ npm run lint
 ```
 
 The installed package gate checks native13/14/15, strict CJS/ESM declarations, all export targets, real copy/collect/resources, and actual browser/style behavior. Tests do not update visual snapshots. Stable adoption requires a separate release decision and actual consumer migration checks.
+
+See [AGENTS.md](AGENTS.md) for development guidance and [CONTRIBUTING.md](CONTRIBUTING.md) for contribution requirements.
+
+## License
+
+[MIT](LICENSE).
