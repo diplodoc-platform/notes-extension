@@ -65,6 +65,7 @@
   "scripts": {
     "build": "node esbuild/build.mjs",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
     "test:package": "node scripts/test-package.mjs",
     "prepublishOnly": "npm run lint && npm run typecheck && npm test && npm run build && npm run test:package",
@@ -79,8 +80,7 @@
     "@types/node": "^22.19.11",
     "@typescript-eslint/eslint-plugin": "8.72.1",
     "@typescript-eslint/parser": "8.72.1",
-    "esbuild": "0.25.12",
-    "husky": "^9.1.7",
+    "@vitest/coverage-v8": "^3.2.4",
     "markdown-it": "15.0.3",
     "playwright": "^1.60.0",
     "sass": "1.97.3",
