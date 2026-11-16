@@ -9,6 +9,8 @@ The runtime stylesheet and Sass mixin are public exports. Preserve all public
 CJS/ESM declarations, resource behavior and computed styles when changing them.
 The custom build emits these multiple Node/browser entries, dual declarations,
 CSS and Sass; it deliberately remains separate from the generic Infra build.
+Use `@diplodoc/infra/esbuild` for bundling and Infra's Husky command for hooks.
+Sass remains a direct dependency for compiling styles and testing package imports.
 
 Use Node 24 and npm 11.5.1 or newer. Run `npm ci --no-workspaces`, `npm run lint`,
 `npm run typecheck`, `npm test`, `npm run build` and `npm run test:package`.

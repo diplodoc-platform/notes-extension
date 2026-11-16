@@ -13,7 +13,7 @@ import {
 import {createRequire} from 'node:module';
 import {join, sep} from 'node:path';
 import {tmpdir} from 'node:os';
-import {build} from 'esbuild';
+import {build} from '@diplodoc/infra/esbuild';
 import {chromium} from 'playwright';
 import * as sass from 'sass';
 

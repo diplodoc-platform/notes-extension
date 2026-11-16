@@ -93,27 +93,6 @@ entries:
     expires-at: 2026-12-01T00:00:00.000Z
     exit-criteria:
       - Revalidate native parser declarations and strict installed CJS/ESM consumers before widening the pin
-  - id: DEP-0016
-    dependency: esbuild
-    repositories:
-      - notes-extension
-    allowed-version: 0.25.12
-    ignored-versions: []
-    risk: high
-    category: build-output
-    verification-profile: document-transform
-    reason: >-
-      The accepted notes implementation uses this builder for the actual dual-format parser and browser outputs; output
-      parity is checked against the reviewed archive.
-    evidence:
-      review: https://github.com/diplodoc-platform/notes-extension/pull/1
-      task: https://st.yandex-team.ru/DOCSTOOLS-6942
-    owner: diplodoc-platform/team
-    introduced-at: 2026-10-28T00:00:00.000Z
-    review-after: 2026-11-17T00:00:00.000Z
-    expires-at: 2026-12-01T00:00:00.000Z
-    exit-criteria:
-      - Revalidate the actual CJS/ESM/browser build, resources and accepted package outputs before widening the pin
   - id: DEP-0017
     dependency: sass
     repositories:
@@ -184,3 +163,55 @@ entries:
     exit-criteria:
       - Reassess the managed dev-tool pin contract after stabilization
       - Keep distribution review-only until hosted pilots pass
+  - id: DEP-0031
+    dependency: '@diplodoc/directive'
+    repositories:
+      - cut-extension
+      - tabs-extension
+      - file-extension
+      - notes-extension
+      - transform
+    allowed-version: 1.0.0-beta.1
+    ignored-versions: []
+    risk: high
+    category: prerelease-graph
+    verification-profile: ecosystem
+    reason: >-
+      Freeze the exact Transform 5 beta.1 runtime graph so each reviewed and packed prerequisite is reproduced; this
+      exception does not authorize other beta versions or stable adoption.
+    evidence:
+      source: https://github.com/diplodoc-platform/directive/commit/85081dd75402ac1640f411ef00c70375a738ddcf
+    owner: diplodoc-platform/team
+    introduced-at: 2026-11-12T00:00:00.000Z
+    review-after: 2026-12-01T00:00:00.000Z
+    expires-at: 2026-12-15T00:00:00.000Z
+    exit-criteria:
+      - Remove this exception when beta.1 is superseded or the prerelease experiment ends
+      - Stable adoption requires a separate dependency and compatibility review
+  - id: DEP-0037
+    dependency: '@diplodoc/directive'
+    repositories:
+      - cut-extension
+      - tabs-extension
+      - file-extension
+      - notes-extension
+      - transform
+    allowed-version: 1.0.0-beta.2
+    ignored-versions: []
+    risk: high
+    category: prerelease-graph
+    verification-profile: ecosystem
+    reason: >-
+      Use the corrected Directive prerequisite for the Transform 5 beta graph after workspace preparation validation;
+      freeze only this reviewed beta.2 version without authorizing stable adoption.
+    evidence:
+      predecessor: https://github.com/diplodoc-platform/directive/pull/68
+      correction: https://github.com/diplodoc-platform/directive/commit/b0937adf95797700eb58228c9f4e46236f17433f
+      review: https://github.com/diplodoc-platform/directive/pull/69
+    owner: diplodoc-platform/team
+    introduced-at: 2026-11-12T00:00:00.000Z
+    review-after: 2026-12-01T00:00:00.000Z
+    expires-at: 2026-12-15T00:00:00.000Z
+    exit-criteria:
+      - Remove this exception when beta.2 is superseded or the prerelease experiment ends
+      - Stable adoption requires a separate dependency and compatibility review

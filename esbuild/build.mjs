@@ -1,4 +1,4 @@
-import {build} from 'esbuild';
+import {build} from '@diplodoc/infra/esbuild';
 import * as sass from 'sass';
 import {execFileSync} from 'node:child_process';
 import {cpSync, mkdirSync, rmSync, writeFileSync} from 'node:fs';

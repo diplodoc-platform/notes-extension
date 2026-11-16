@@ -1,4 +1,6 @@
 exclude:
+  - path: sonar-project.properties
+    reason: 'Notes tests live in test/, while the shared template assumes colocated src tests.'
   - path: .github/workflows/tests.yml
     reason: 'Run installed-package and Chromium checks on every supported OS.'
   - path: .github/workflows/auto-approve.yml

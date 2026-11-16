@@ -126,6 +126,10 @@ jobs:
         if: inputs.release_type != 'deprecate'
         run: npm run build
 
+      - name: Install Chromium for the prepublish package checks
+        if: inputs.release_type != 'deprecate'
+        run: npx playwright install --with-deps chromium
+
       - name: Require a stable package version
         if: github.event_name == 'release' || inputs.release_type == 'stable'
         run: |
@@ -152,7 +156,7 @@ jobs:
 
       - name: Publish stable to npm
         if: (github.event_name == 'release' && github.event.release.draft == false) || (github.event_name == 'workflow_dispatch' && inputs.release_type == 'stable')
-        run: npm publish --provenance --access public
+        run: npm publish --tag latest --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
