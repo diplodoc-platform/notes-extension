@@ -2,7 +2,7 @@ exclude:
   - path: sonar-project.properties
     reason: 'Notes tests live in test/, while the shared template assumes colocated src tests.'
   - path: .github/workflows/tests.yml
-    reason: 'Run installed-package and Chromium checks on every supported OS.'
+    reason: 'Run installed-package and Chromium checks on every supported OS; pin Ubuntu 24.04 for Playwright.'
   - path: .github/workflows/auto-approve.yml
     reason: 'Bot approval activation requires separate review.'
   - path: .github/workflows/package-lock.yml

@@ -70,7 +70,7 @@ permissions:
 jobs:
   publish:
     name: Publish to npm
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # For prerelease - only from non-protected branches
     # For deprecate - always allowed
     if: |
