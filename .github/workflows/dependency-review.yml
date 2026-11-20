@@ -15,7 +15,6 @@ permissions:
 jobs:
   dependency-review:
     name: Dependency Review
-    if: github.event.repository.private == false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -31,12 +30,3 @@ jobs:
           # incompatible with the permissive MIT-licensed Diplodoc platform.
           license-check: true
           deny-licenses: AGPL-3.0, GPL-2.0, GPL-3.0, LGPL-2.1, LGPL-3.0, SSPL-1.0
-
-  private-eligibility-notice:
-    name: Private repository dependency review notice
-    if: github.event.repository.private == true
-    runs-on: ubuntu-latest
-    steps:
-      - name: Explain deferred review
-        run: >
-          echo 'No dependency or license review was performed; deferred until the owner makes the repository public and the strict review is rerun.' >> "$GITHUB_STEP_SUMMARY"
