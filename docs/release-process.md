@@ -9,6 +9,24 @@ explicit confirmation, use a validated non-`latest` dist-tag (default `transform
 and derive a sanitized version from the branch and GitHub run identifiers. A
 feature-branch push alone does not publish.
 
+## First stable release
+
+The first stable release is `1.0.0`, configured with `initial-version`.
+The manifest starts at `0.0.0` because this repository has no GitHub release
+or release tag yet; npm-only prereleases are not a previous GitHub release.
+Release Please updates the manifest when preparing the release PR. After that
+release, normal Conventional Commit versioning resumes; a subsequent fix
+produces `1.0.1`.
+
+The bootstrap commit also carries the one-time `Release-As: 1.0.0` footer.
+Preserve that footer in the final squash commit message; it is also included
+in the feature PR body. It keeps the first
+release correct even if Infra regenerates the manifest from the beta version
+in `package.json`. The footer is consumed with the first release's commit range;
+there is no persistent `release-as` override to remove for later releases.
+Verify the release model after Infra scaffolding updates, and do not manually
+replace the GitHub release baseline with an npm-only beta version.
+
 Publication with npm provenance requires a public source repository. This
 repository is currently private, so the workflow deliberately fails with an
 explanation before publishing. See [npm's provenance requirements](https://docs.npmjs.com/generating-provenance-statements/)
