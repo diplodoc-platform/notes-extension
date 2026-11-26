@@ -85,7 +85,7 @@
     "playwright": "^1.60.0",
     "sass": "1.97.3",
     "typescript": "6.0.3",
-    "vitest": "^4.1.9"
+    "vitest": "^5.0.5"
   },
   "module": "build/esm/index.js",
   "peerDependencies": {
