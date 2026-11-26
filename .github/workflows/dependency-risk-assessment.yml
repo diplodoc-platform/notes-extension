@@ -5,9 +5,7 @@ name: Dependency Risk Assessment
   pull_request:
     branches:
       - '**'
-    paths:
-      - package.json
-      - package-lock.json
+    # The master ruleset requires this check even when dependency files are unchanged.
 permissions:
   contents: read
   pull-requests: read
