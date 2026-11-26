@@ -81,7 +81,7 @@
     "@typescript-eslint/eslint-plugin": "8.72.1",
     "@typescript-eslint/parser": "8.72.1",
     "@vitest/coverage-v8": "^4.1.9",
-    "markdown-it": "15.0.3",
+    "markdown-it": "^15.0.3",
     "playwright": "^1.60.0",
     "sass": "1.97.3",
     "typescript": "6.0.3",
@@ -89,13 +89,13 @@
   },
   "module": "build/esm/index.js",
   "peerDependencies": {
-    "markdown-it": "^13.0.0 || ^14.0.0 || ^15.0.0"
+    "markdown-it": "^15.0.3"
   },
   "engines": {
     "node": ">=24",
     "npm": ">=11.5.1"
   },
   "dependencies": {
-    "@diplodoc/directive": "1.0.0-beta.2"
+    "@diplodoc/directive": "^1.0.0-beta.4"
   }
 }

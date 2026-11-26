@@ -2,15 +2,15 @@
 
 # @diplodoc/notes-extension
 
-A synchronous MarkdownIt plugin for the existing `{% note info %}` / `{% endnote %}` syntax. This is a Transform 5 prerelease candidate; publication is separate from source review.
+A synchronous MarkdownIt plugin for rendering Diplodoc notes. The 1.x series is used by Transform 5.
 
 ## Installation
 
 ```sh
-npm install @diplodoc/notes-extension@transform5 markdown-it
+npm install @diplodoc/notes-extension markdown-it@^15.0.3
 ```
 
-The `transform5` tag selects the Transform 5 beta. This package supports MarkdownIt 13, 14 and 15.
+Notes 1.x requires Markdown-it 15.0.3 or later within major version 15.
 
 ## Node use
 
@@ -62,7 +62,7 @@ import '@diplodoc/notes-extension/runtime/styles.css';
 const md = new MarkdownIt().use(transform({runtime: false}), {lang: 'en'});
 ```
 
-Render HTML inside a `.yfm` container. The browser entry does not import Node modules, construct a parser, copy files or expose `.collect()`. Its optional `bundle` setting can only be false. Native13/14 browser hosts can use their official MarkdownIt browser distributions; their Node root entry has host-specific builtin requirements. Native15's ordinary root ESM entry is browser-bundle compatible. Extension graph purity does not change those host entry contracts.
+Render HTML inside a `.yfm` container. The browser entry does not import Node modules, construct a parser, copy files or expose `.collect()`. Its optional `bundle` setting can only be false. Bundle the native Markdown-it 15 ESM entry with the browser adapter.
 
 `@diplodoc/notes-extension/plugin` exposes the pure `createNotesPlugin(formatPath?, onNote?)` factory, `TokenType`, the canonical `TITLES` dictionary, `DEFAULT_LANG`, and finite public types including `Lang`. The dictionary exports let retained Transform constants paths delegate to this single source. It emits no assets. Transform's built-in bridge can bind its existing diagnostic formatter and reuse its own bundled styles. No private MarkdownIt State imports or Transform dependency are required.
 
@@ -113,7 +113,7 @@ npm run test:package
 npm run lint
 ```
 
-The installed package gate checks native13/14/15, strict CJS/ESM declarations, all export targets, real copy/collect/resources, and actual browser/style behavior. Tests do not update visual snapshots. Stable adoption requires a separate release decision and actual consumer migration checks.
+The installed package gate checks Markdown-it 15, strict CJS/ESM declarations, all export targets, real copy/collect/resources, and actual browser/style behavior.
 
 See [AGENTS.md](AGENTS.md) for development guidance and [CONTRIBUTING.md](CONTRIBUTING.md) for contribution requirements.
 

@@ -14,8 +14,8 @@ Sass remains a direct dependency for compiling styles and testing package import
 
 Use Node 24 and npm 11.5.1 or newer. Run `npm ci --no-workspaces`, `npm run lint`,
 `npm run typecheck`, `npm test`, `npm run build` and `npm run test:package`.
-Package tests require Playwright Chromium and test installed native markdown-it
-13, 14 and 15. Work outside the metapackage when proving standalone installs.
+Package tests require Playwright Chromium and exercise the installed package
+with Markdown-it 15. Work outside the metapackage when proving standalone installs.
 Infra owns generated scaffolding; `.infrarc.yml` records bounded exceptions.
 Release prerequisites are documented in `docs/release-process.md`.
 Do not publish or modify GitHub settings without explicit authorization.
