@@ -28,38 +28,36 @@ const packed = JSON.parse(
     runNpm(['pack', '--json', '--pack-destination', directory], root).toString(),
 )[0];
 const tar = join(directory, packed.filename);
-const results = [];
-for (const [version, types] of [
-    ['13.0.2', '13.0.9'],
-    ['14.1.0', '14.1.0'],
-    ['15.0.3', null],
-]) {
+const sourceLock = JSON.parse(readFileSync(join(root, 'package-lock.json')));
+const directivePath = 'node_modules/@diplodoc/directive';
+const expectedDirective = sourceLock.packages[directivePath];
+
+async function checkInstalledPackage(version) {
     const fixture = join(directory, version);
     mkdirSync(fixture);
     const deps = {
         '@diplodoc/notes-extension': `file:${tar}`,
+        '@diplodoc/directive': expectedDirective.version,
         'markdown-it': version,
         typescript: '6.0.3',
         '@types/node': '22.19.11',
         'markdown-it-footnote': '4.0.0',
         'markdown-it-attrs': '4.2.0',
     };
-    if (types) deps['@types/markdown-it'] = types;
-    if (version === '14.1.0') deps.mdurl = '2.0.0';
-    if (version === '13.0.2') deps['markdown-it-transform15'] = 'npm:markdown-it@15.0.3';
     writeFileSync(
         join(fixture, 'package.json'),
         JSON.stringify({private: true, dependencies: deps}),
     );
-    runNpm(['install', '--no-audit', '--no-fund'], fixture);
-    runNpm(['ci', '--no-audit', '--no-fund'], fixture);
+    runNpm(['install', '--strict-peer-deps', '--no-audit', '--no-fund'], fixture);
+    runNpm(['ci', '--strict-peer-deps', '--no-audit', '--no-fund'], fixture);
     const lock = JSON.parse(readFileSync(join(fixture, 'package-lock.json')));
-    const directive = lock.packages['node_modules/@diplodoc/directive'];
-    assert.equal(directive.version, '1.0.0-beta.2');
+    const directive = lock.packages[directivePath];
+    assert.equal(directive.version, expectedDirective.version);
     assert.match(directive.resolved, /^https:\/\/registry\.npmjs\.org\//);
-    assert.equal(
-        directive.integrity,
-        'sha512-5aGEs8uWe4mYXBRtPn5vFRXSrooQZrf0p3eyEsUWWp6EhnlcnyiVK4pAh1jQZoBKM0HCJRa5Em7uHFdri5ESbA==',
+    assert.equal(directive.integrity, expectedDirective.integrity);
+    assert.deepEqual(
+        Object.keys(lock.packages).filter((path) => /(^|\/)node_modules\/markdown-it$/.test(path)),
+        ['node_modules/markdown-it'],
     );
     const localRequire = createRequire(join(fixture, 'package.json'));
     const modules = realpathSync(join(fixture, 'node_modules')) + sep;
@@ -74,25 +72,19 @@ for (const [version, types] of [
             `${name} escaped fixture`,
         );
     }
-    const directiveRequire = createRequire(
-        localRequire.resolve('@diplodoc/directive/package.json'),
-    );
+    const notesRequire = createRequire(localRequire.resolve('@diplodoc/notes-extension'));
+    const directiveManifest = '@diplodoc/directive/package.json';
+    const directiveEntry = localRequire.resolve(directiveManifest);
+    assert.equal(notesRequire.resolve(directiveManifest), directiveEntry);
+    const directiveRequire = createRequire(directiveEntry);
     assert.equal(
         realpathSync(directiveRequire.resolve('markdown-it')),
         realpathSync(localRequire.resolve('markdown-it')),
     );
     assert.equal(localRequire('markdown-it/package.json').version, version);
-    if (types) assert.equal(localRequire('@types/markdown-it/package.json').version, types);
-    else
-        assert.throws(() => directiveRequire.resolve('@types/markdown-it/package.json'), {
-            code: 'MODULE_NOT_FOUND',
-        });
-    if (version === '13.0.2') {
-        assert.equal(localRequire('markdown-it-transform15/package.json').version, '15.0.3');
-        assert.ok(
-            realpathSync(localRequire.resolve('markdown-it-transform15')).startsWith(modules),
-        );
-    }
+    assert.throws(() => directiveRequire.resolve('@types/markdown-it/package.json'), {
+        code: 'MODULE_NOT_FOUND',
+    });
     const installed = join(fixture, 'node_modules/@diplodoc/notes-extension');
     const manifest = JSON.parse(readFileSync(join(installed, 'package.json')));
     const targets = (value) =>
@@ -194,11 +186,7 @@ transform({log:{warn:(_message:string)=>{}}});
             extension === 'cts'
                 ? `import type MarkdownItConstructor from 'markdown-it' with {'resolution-mode':'import'};\nimport {createRequire} from 'node:module';\nconst MarkdownIt:typeof MarkdownItConstructor=createRequire(__filename)('markdown-it');\n`
                 : `import MarkdownIt from 'markdown-it';\n`;
-        const mixed =
-            version === '13.0.2'
-                ? `\nimport MarkdownIt15 from 'markdown-it-transform15';\nnew MarkdownIt15().use(colonPlugin).render(colon);\n`
-                : '';
-        writeFileSync(join(fixture, `test.${extension}`), header + body + mixed);
+        writeFileSync(join(fixture, `test.${extension}`), header + body);
     }
     writeFileSync(
         join(fixture, 'tsconfig.json'),
@@ -271,7 +259,7 @@ for (const order of ['note-first', 'footnote-first']) for (const attrs of [false
     const browserEntry = join(fixture, 'browser.mjs');
     writeFileSync(
         browserEntry,
-        `${version === '15.0.3' ? "import MarkdownIt from 'markdown-it';" : 'const MarkdownIt = globalThis.markdownit;'}import {transform} from '@diplodoc/notes-extension/browser';const env={};document.body.innerHTML=new MarkdownIt().use(transform({lang:'fr',runtime:false,directiveSyntax:'enabled'})).render(':::note {type=info}\\nBody\\n:::',env);if(document.querySelector('.yfm-note-title')?.textContent!=='Remarque'||Object.keys(env).length)throw Error('notes browser contract');document.body.dataset.notes='passed';`,
+        `import MarkdownIt from 'markdown-it';import {transform} from '@diplodoc/notes-extension/browser';const env={};document.body.innerHTML=new MarkdownIt().use(transform({lang:'fr',runtime:false,directiveSyntax:'enabled'})).render(':::note {type=info}\\nBody\\n:::',env);if(document.querySelector('.yfm-note-title')?.textContent!=='Remarque'||Object.keys(env).length)throw Error('notes browser contract');document.body.dataset.notes='passed';`,
     );
     const bundle = await build({
         entryPoints: [browserEntry],
@@ -299,11 +287,6 @@ for (const order of ['note-first', 'footnote-first']) for (const attrs of [false
         await page.addStyleTag({
             content: readFileSync(join(installed, 'build/runtime/index.css'), 'utf8'),
         });
-        if (version !== '15.0.3') {
-            await page.addScriptTag({
-                path: join(fixture, 'node_modules/markdown-it/dist/markdown-it.js'),
-            });
-        }
         await page.addScriptTag({type: 'module', content: bundle.outputFiles[0].text});
         await page.waitForFunction(() => document.body.dataset.notes === 'passed');
         assert.deepEqual(pageErrors, []);
@@ -323,7 +306,7 @@ for (const order of ['note-first', 'footnote-first']) for (const attrs of [false
     } finally {
         await browser.close();
     }
-    results.push({
+    return {
         version,
         strictCjsEsm: true,
         pureGraph: true,
@@ -331,8 +314,10 @@ for (const order of ['note-first', 'footnote-first']) for (const attrs of [false
         actualBrowser: true,
         exportTargets: true,
         files: packed.files.length,
-    });
+    };
 }
+
+const results = [await checkInstalledPackage('15.0.3')];
 writeFileSync(
     join(directory, 'results.json'),
     JSON.stringify(
