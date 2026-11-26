@@ -9,3 +9,11 @@ exclude:
     reason: 'Use read-only lock validation; automated force-push needs separate review.'
   - path: .github/workflows/release.yml
     reason: 'Install Chromium on Ubuntu 24.04 for prepublish verification, use the appropriate npm dist-tag, and guard stable releases on master.'
+  - path: .release-please-manifest.json
+    reason: 'Release Please owns the released version, which can differ from the prerelease package version.'
+  - path: .github/dependency-policy.yml
+    reason: 'Preserve the reviewed Notes pins until the shared registry includes the supported Notes dependency graph.'
+  - path: .github/workflows/dependency-policy-check.yml
+    reason: 'Keep the exact-pin check on the infra revision containing the reviewed Notes policy.'
+  - path: .github/workflows/dependency-risk-assessment.yml
+    reason: 'Keep the risk assessment on the same reviewed Notes policy revision.'
