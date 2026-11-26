@@ -76,7 +76,7 @@
     "lock": "npm install --no-workspaces --package-lock-only --ignore-scripts"
   },
   "devDependencies": {
-    "@diplodoc/infra": "2.3.0",
+    "@diplodoc/infra": "2.4.0",
     "@types/node": "^22.19.11",
     "@typescript-eslint/eslint-plugin": "8.72.1",
     "@typescript-eslint/parser": "8.72.1",
